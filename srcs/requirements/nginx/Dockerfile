@@ -1,0 +1,13 @@
+FROM    alpine:3.19.1
+MAINTAINER cassassa@student.42paris.fr
+
+RUN     apk update && apk upgrade && apk add --no-cache nginx
+
+COPY    ./conf/default.conf /etc/nginx/http.d/default.conf
+COPY	./conf/srv.key /etc/nginx/ssl/srv.key
+COPY	./conf/srv.crt /etc/nginx/ssl/srv.crt
+
+EXPOSE  443
+# ENTRYPOINT ["tail", "-f", "/dev/null"]
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
+

@@ -1,0 +1,106 @@
+version: '3.5'
+
+services:
+#MANDATORY##########################################################
+  nginx:
+    build: ./requirements/nginx
+    container_name: nginx
+    image: nginx
+    ports:
+      - "443:443"
+    env_file:
+      - .env
+    volumes:
+      - ${VOLUME_ROOT}/wordpress:/var/www/html
+    depends_on:
+      - wordpress
+    networks:
+      - docker-network
+    restart: unless-stopped
+
+  wordpress:
+    build: ./requirements/wordpress
+    container_name: wordpress
+    image: wordpress
+    env_file:
+      - .env
+    volumes:
+      - ${VOLUME_ROOT}/wordpress:/var/www/html
+    depends_on:
+      - mariadb
+    networks:
+      - docker-network
+    restart: unless-stopped
+
+  mariadb:
+    build: ./requirements/mariadb
+    container_name: mariadb
+    image: mariadb
+    env_file:
+      - .env
+    volumes:
+      - ${VOLUME_ROOT}/mariadb:/var/lib/mysql
+    networks:
+      - docker-network
+    restart: unless-stopped
+#BONUS##########################################################
+  adminer:
+    build: ./requirements/bonus/adminer
+    container_name: adminer
+    image: adminer
+    networks:
+      - docker-network
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+  website:
+    build: ./requirements/bonus/website
+    container_name: website
+    image: website
+    networks:
+      - docker-network
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+  cadvisor:
+    build: ./requirements/bonus/cadvisor
+    container_name: cadvisor
+    image: cadvisor
+    networks:
+      - docker-network
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro 
+      - /sys:/sys:ro 
+      - /var/lib/docker/:/var/lib/docker:ro
+  redis:
+    build: ./requirements/bonus/redis
+    container_name: redis
+    image: redis
+    volumes:
+      - ${VOLUME_ROOT}/wordpress:/var/www/html
+    depends_on:
+      - wordpress
+    networks:
+      - docker-network
+    restart: unless-stopped
+  ftp:
+    build: ./requirements/bonus/ftp
+    container_name: ftp
+    image: ftp
+    volumes:
+      - ${VOLUME_ROOT}/wordpress:/ftp
+    depends_on:
+      - wordpress
+    networks:
+      - docker-network
+    restart: unless-stopped
+    ports:
+      - "21:21"
+      - "21100-21110:21100-21110"
+networks:
+  docker-network:
+    driver: bridge
